@@ -28,11 +28,12 @@ def main():
             logging.info(f"Retrieved {len(recent_videos_df)} videos for {email}")
 
             # Generating the prompt from transcript
-            recent_videos_df['twitterThreadPrompt'] = recent_videos_df['videoTranscript'].apply(create_twitter_thread_prompt)
+            recent_videos_df['twitterThreadPrompt'] = recent_videos_df['videoTranscript'].apply(lambda x : create_twitter_thread_prompt(x))
             logging.info(f"Generated Twitter thread prompts for {email}")
+            logging.info(str(recent_videos_df.to_dict(orient='records')))
 
             # Uncomment this line to generate the thread using OpenAI
-            recent_videos_df['twitterThread'] = recent_videos_df['twitterThreadPrompt'].apply(get_openai_completion)
+            recent_videos_df['twitterThread'] = recent_videos_df['twitterThreadPrompt'].apply(lambda x : get_openai_completion(x))
             logging.info(f"Generated Twitter threads using OpenAI for {email}")
 
             # Store the DataFrame with the corresponding email
