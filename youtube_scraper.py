@@ -79,7 +79,7 @@ def get_video_transcript(video_id):
         logging.error(f"Failed to retrieve transcript for {video_id}: {e}")
         return None  # Return None if transcript retrieval fails
 
-def main(youtube_handles, hours=24):
+def scrape_youtube(youtube_handles, hours=24):
     """Main function to run the video retrieval and transcript collection."""
     recent_videos_df = get_recent_videos_for_handles(youtube_handles, hours)
     recent_videos_df['videoTranscript'] = recent_videos_df['videoID'].apply(get_video_transcript)
