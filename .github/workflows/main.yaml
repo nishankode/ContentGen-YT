@@ -1,9 +1,9 @@
 name: Daily Script Execution
 
-# Trigger the workflow every 24 hours (at midnight UTC).
+# Trigger the workflow every day at 4:44 PM UTC (which is 10:14 PM IST).
 on:
   schedule:
-    - cron: '0 0 * * *' # This cron job will run at 00:00 UTC every day.
+    - cron: '44 16 * * *' # This cron job will run at 16:44 UTC every day.
 
 jobs:
   run-script:
