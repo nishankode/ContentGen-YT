@@ -27,7 +27,7 @@ jobs:
           GMAIL_USER: ${{ secrets.GMAIL_USER }}
           GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
         run: |
-          python -u main.py 2>&1 | tee output.log
+          python main.py 2>&1 | tee output.log
 
       - name: Display Python script output
         if: always()
@@ -35,15 +35,9 @@ jobs:
           echo "Python Script Output:"
           cat output.log
 
-      - name: Check for errors
-        if: failure()
-        run: |
-          echo "The script failed. Here's the full output:"
-          cat output.log
-
       - name: Upload log as artifact
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: script-output
           path: output.log
