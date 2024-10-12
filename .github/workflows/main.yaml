@@ -1,36 +1,36 @@
 name: Daily Script Execution
 
-# Trigger the workflow on a schedule and manually.
 on:
   schedule:
-    - cron: '44 16 * * *' # Runs at 16:44 UTC every day.
-  workflow_dispatch: # This enables manual triggering of the workflow.
+    - cron: '44 16 * * *'  # Runs at 16:44 UTC every day
+  workflow_dispatch:  # Enables manual triggering
 
 jobs:
   run-script:
-    runs-on: ubuntu-latest  # Run the job on the latest Ubuntu image.
-
+    runs-on: ubuntu-latest
     steps:
-      # Step 1: Checkout the repository
       - name: Checkout code
-        uses: actions/checkout@v3  # Latest version
+        uses: actions/checkout@v4  # Updated to v4
 
-      # Step 2: Set up Python environment
       - name: Set up Python
-        uses: actions/setup-python@v4  # Latest version
+        uses: actions/setup-python@v5  # Updated to v5
         with:
-          python-version: '3.12'  # Specify the Python version
+          python-version: '3.12'
 
-      # Step 3: Install dependencies
       - name: Install dependencies
         run: |
-          pip install -r requirements.txt  # Install required packages
+          pip install -r requirements.txt
 
-      # Step 4: Run the script
       - name: Run Python Script
         env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}          # Pass OpenAI API key
-          GMAIL_USER: ${{ secrets.GMAIL_USER }}                  # Pass Gmail user
-          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}  # Pass Gmail app password
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GMAIL_USER: ${{ secrets.GMAIL_USER }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
         run: |
-          python main.py  # Run your main Python script
+          python main.py
+          
+      - name: Check for errors
+        if: failure()
+        run: |
+          echo "The script failed. Here's the last few lines of the log:"
+          tail -n 20 $GITHUB_WORKSPACE/github-actions.log
