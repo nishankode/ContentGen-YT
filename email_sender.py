@@ -4,6 +4,7 @@ import os
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from datetime import datetime
+import logging
 
 def load_email_credentials():
     """Load email credentials from environment variables."""
@@ -13,6 +14,9 @@ def load_email_credentials():
     if not sender_email or not sender_password:
         raise ValueError("Email or password not set in environment variables.")
 
+    # Log the email ID (but not the password)
+    logging.info(f"Loaded email credentials for: {sender_email}")
+    
     return sender_email, sender_password
 
 def read_data(csv_file):
@@ -128,12 +132,12 @@ def send_email(html_content, recipient_emails, sender_email, sender_password):
 
     try:
         # Connect to the SMTP server
-        print("Connecting to SMTP server...")
+        logging.info("Connecting to SMTP server...")
         server = smtplib.SMTP(smtp_server, smtp_port)
         server.starttls()
-        print("TLS started. Attempting login...")
+        logging.info("TLS started. Attempting login...")
         server.login(sender_email, sender_password)
-        print("Login successful.")
+        logging.info("Login successful.")
 
         # Create the email message
         message = MIMEMultipart("alternative")
@@ -146,20 +150,20 @@ def send_email(html_content, recipient_emails, sender_email, sender_password):
 
         # Send the email
         server.send_message(message)
-        print("Email sent successfully to all recipients.")
+        logging.info("Email sent successfully to all recipients.")
 
     except smtplib.SMTPAuthenticationError as e:
-        print("Authentication failed. Please check your email and App Password.")
-        print(f"Error details: {str(e)}")
-        print("Make sure you're using an App Password, not your regular Gmail password.")
-        print("To set up an App Password, visit: https://myaccount.google.com/apppasswords")
+        logging.error("Authentication failed. Please check your email and App Password.")
+        logging.error(f"Error details: {str(e)}")
+        logging.info("Make sure you're using an App Password, not your regular Gmail password.")
+        logging.info("To set up an App Password, visit: https://myaccount.google.com/apppasswords")
     except Exception as e:
-        print(f"An error occurred: {str(e)}")
+        logging.error(f"An error occurred: {str(e)}")
     finally:
         # Close the SMTP connection
         if 'server' in locals():
             server.quit()
-        print("SMTP connection closed.")
+        logging.info("SMTP connection closed.")
 
 
 def send_daily_digest(df, recipient_emails):
