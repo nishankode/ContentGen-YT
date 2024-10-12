@@ -1,0 +1,31 @@
+name: Daily Script Execution
+
+# Trigger the workflow every 24 hours (at midnight UTC).
+on:
+  schedule:
+    - cron: '0 0 * * *' # This cron job will run at 00:00 UTC every day.
+
+jobs:
+  run-script:
+    runs-on: ubuntu-latest  # Run the job on the latest Ubuntu image.
+
+    steps:
+    # Step 1: Checkout the repository
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    # Step 2: Set up Python environment
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.12'  # Specify the Python version
+
+    # Step 3: Install dependencies
+    - name: Install dependencies
+      run: |
+        pip install -r requirements.txt  # Install required packages
+
+    # Step 4: Run the script
+    - name: Run Python Script
+      run: |
+        python main.py  # Replace with the name of your script
