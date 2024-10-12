@@ -10,10 +10,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4  # Updated to v4
+        uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v5  # Updated to v5
+        uses: actions/setup-python@v5
         with:
           python-version: '3.12'
 
@@ -27,10 +27,23 @@ jobs:
           GMAIL_USER: ${{ secrets.GMAIL_USER }}
           GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
         run: |
-          python main.py
-          
+          python -u main.py 2>&1 | tee output.log
+
+      - name: Display Python script output
+        if: always()
+        run: |
+          echo "Python Script Output:"
+          cat output.log
+
       - name: Check for errors
         if: failure()
         run: |
-          echo "The script failed. Here's the last few lines of the log:"
-          tail -n 20 $GITHUB_WORKSPACE/github-actions.log
+          echo "The script failed. Here's the full output:"
+          cat output.log
+
+      - name: Upload log as artifact
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: script-output
+          path: output.log
