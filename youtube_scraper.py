@@ -70,9 +70,32 @@ def get_recent_videos_for_handles(handles, hours=24):
     else:
         return pd.DataFrame()  # Return empty DataFrame if no videos found
 
+import logging
+from youtube_transcript_api import YouTubeTranscriptApi
+import requests
+from requests.exceptions import RequestException
+
 def get_video_transcript(video_id):
-    """Retrieve the transcript for a specific video ID."""
+    """Retrieve the transcript for a specific video ID using a proxy."""
+    # Proxy configuration
+    proxy_url = "socks5://198.23.239.134:6540"
+    proxy_auth = requests.auth.HTTPProxyAuth("guivyfga", "5tdsarxabmko")
+    
+    proxies = {
+        'http': proxy_url,
+        'https': proxy_url
+    }
+
     try:
+        # Create a session with the proxy
+        session = requests.Session()
+        session.proxies = proxies
+        session.auth = proxy_auth
+
+        # Use the session to make requests
+        YouTubeTranscriptApi.http_client.proxies = proxies
+        YouTubeTranscriptApi.http_client.auth = proxy_auth
+
         video_transcript_json = YouTubeTranscriptApi.get_transcript(video_id)
         return ' '.join([i['text'] for i in video_transcript_json])
     except Exception as e:
