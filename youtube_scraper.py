@@ -78,7 +78,7 @@ from requests.exceptions import RequestException
 def get_video_transcript(video_id):
     """Retrieve the transcript for a specific video ID using a proxy."""
     # Proxy configuration
-    proxy_url = "socks5://198.23.239.134:6540"
+    proxy_url = "socks5h://198.23.239.134:6540"
     proxy_auth = requests.auth.HTTPProxyAuth("guivyfga", "5tdsarxabmko")
     
     proxies = {
@@ -92,11 +92,14 @@ def get_video_transcript(video_id):
         session.proxies = proxies
         session.auth = proxy_auth
 
-        # Use the session to make requests
-        YouTubeTranscriptApi.http_client.proxies = proxies
-        YouTubeTranscriptApi.http_client.auth = proxy_auth
+        # Create a custom fetcher function that uses our proxied session
+        def proxied_get(url, timeout):
+            response = session.get(url, timeout=timeout)
+            response.raise_for_status()
+            return response.text
 
-        video_transcript_json = YouTubeTranscriptApi.get_transcript(video_id)
+        # Use the custom fetcher with YouTubeTranscriptApi
+        video_transcript_json = YouTubeTranscriptApi.get_transcript(video_id, proxies=proxies, fetcher=proxied_get)
         return ' '.join([i['text'] for i in video_transcript_json])
     except Exception as e:
         logging.error(f"Failed to retrieve transcript for {video_id}: {e}")
