@@ -76,13 +76,27 @@ def get_video_transcript(video_id):
         video_transcript_json = YouTubeTranscriptApi.get_transcript(video_id)
         return ' '.join([i['text'] for i in video_transcript_json])
     except Exception as e:
-        logging.error(f"Failed to retrieve transcript for {video_id}: {e}")
-        return None  # Return None if transcript retrieval fails
+        logging.error(f"Failed to retrieve transcript for {video_id}: {str(e)}")
+        return f"ERROR: {str(e)}"  # Return error message instead of None
 
 def scrape_youtube(youtube_handles, hours=24):
     """Main function to run the video retrieval and transcript collection."""
     recent_videos_df = get_recent_videos_for_handles(youtube_handles, hours)
-    recent_videos_df['videoTranscript'] = recent_videos_df['videoID'].apply(get_video_transcript)
+    
+    # Add more detailed logging
+    logging.info(f"Retrieved {len(recent_videos_df)} videos")
+    
+    # Apply transcript retrieval with more information
+    def get_transcript_with_info(row):
+        logging.info(f"Attempting to retrieve transcript for video {row['videoID']} from {row['handle']}")
+        transcript = get_video_transcript(row['videoID'])
+        if transcript.startswith("ERROR:"):
+            logging.warning(f"Failed to retrieve transcript for {row['videoID']}: {transcript}")
+        else:
+            logging.info(f"Successfully retrieved transcript for {row['videoID']}")
+        return transcript
 
-    logging.info("Retrieved recent videos and transcripts.")
+    recent_videos_df['videoTranscript'] = recent_videos_df.apply(get_transcript_with_info, axis=1)
+
+    logging.info("Completed retrieving recent videos and transcripts.")
     return recent_videos_df
