@@ -73,7 +73,6 @@ def get_recent_videos_for_handles(handles, hours=24):
 import logging
 from youtube_transcript_api import YouTubeTranscriptApi
 import requests
-from requests.exceptions import RequestException
 
 def get_video_transcript(video_id):
     """Retrieve the transcript for a specific video ID using a proxy."""
@@ -87,20 +86,18 @@ def get_video_transcript(video_id):
     }
 
     try:
-        # Create a session with the proxy
-        session = requests.Session()
-        session.proxies = proxies
-        session.auth = proxy_auth
+        # Configure YouTubeTranscriptApi to use the proxy
+        YouTubeTranscriptApi.proxies = proxies
 
-        # Create a custom fetcher function that uses our proxied session
-        def proxied_get(url, timeout):
-            response = session.get(url, timeout=timeout)
-            response.raise_for_status()
-            return response.text
+        # Fetch the transcript
+        transcript_list = YouTubeTranscriptApi.list_transcripts(video_id)
+        transcript = transcript_list.find_transcript(['en'])  # Prioritize English transcript
+        
+        # Join the transcript text
+        full_transcript = ' '.join([entry['text'] for entry in transcript.fetch()])
+        
+        return full_transcript
 
-        # Use the custom fetcher with YouTubeTranscriptApi
-        video_transcript_json = YouTubeTranscriptApi.get_transcript(video_id, proxies=proxies, fetcher=proxied_get)
-        return ' '.join([i['text'] for i in video_transcript_json])
     except Exception as e:
         logging.error(f"Failed to retrieve transcript for {video_id}: {e}")
         return None  # Return None if transcript retrieval fails
