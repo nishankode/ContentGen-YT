@@ -1,8 +1,8 @@
-name: Daily Script Execution with Proxy
+name: Daily Script Execution
 
 on:
   schedule:
-    - cron: '30 17 * * *'  # Runs at 17:30 UTC every day
+    - cron: '30 17 * * *'  # Runs at 16:44 UTC every day
   workflow_dispatch:  # Enables manual triggering
 
 jobs:
@@ -20,26 +20,14 @@ jobs:
       - name: Install dependencies
         run: |
           pip install -r requirements.txt
-          sudo apt-get update
-          sudo apt-get install -y proxychains4
 
-      - name: Configure proxychains
-        run: |
-          echo "strict_chain" | sudo tee /etc/proxychains4.conf
-          echo "proxy_dns" | sudo tee -a /etc/proxychains4.conf
-          echo "remote_dns_subnet 224" | sudo tee -a /etc/proxychains4.conf
-          echo "tcp_read_time_out 15000" | sudo tee -a /etc/proxychains4.conf
-          echo "tcp_connect_time_out 8000" | sudo tee -a /etc/proxychains4.conf
-          echo "[ProxyList]" | sudo tee -a /etc/proxychains4.conf
-          echo "socks5 198.23.239.134 6540 guivyfga 5tdsarxabmko" | sudo tee -a /etc/proxychains4.conf
-
-      - name: Run Python Script through proxy
+      - name: Run Python Script
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           GMAIL_USER: ${{ secrets.GMAIL_USER }}
           GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
         run: |
-          proxychains4 python main.py 2>&1 | tee output.log
+          python main.py 2>&1 | tee output.log
 
       - name: Display Python script output
         if: always()
