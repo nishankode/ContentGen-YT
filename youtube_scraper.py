@@ -75,15 +75,24 @@ def get_recent_videos_for_handles(handles, hours=24):
     else:
         return pd.DataFrame()  # Return empty DataFrame if no videos found
 
-def get_video_transcript(video_id):
+import requests
+from bs4 import BeautifulSoup
+import re
+import json
+
+def get_video_transcript(video_id, proxy=None):
     """Retrieve the transcript for a specific video ID using web scraping."""
     url = f"https://www.youtube.com/watch?v={video_id}"
-
-    logging.info(f"Started collecting transcripts for {url}")
     
+    # Define proxies if provided
+    proxies = {
+        "http": proxy,
+        "https": proxy,
+    } if proxy else None
+
     try:
         # Send a GET request to the YouTube video page
-        response = requests.get(url)
+        response = requests.get(url, proxies=proxies)
         response.raise_for_status()  # Raise an exception for bad status codes
         
         # Parse the HTML content
@@ -110,7 +119,7 @@ def get_video_transcript(video_id):
         caption_url = captions[0]['baseUrl']
         
         # Download the actual transcript data
-        transcript_response = requests.get(caption_url)
+        transcript_response = requests.get(caption_url, proxies=proxies)
         transcript_response.raise_for_status()
         
         # Parse the transcript data
@@ -121,16 +130,7 @@ def get_video_transcript(video_id):
         full_transcript = ' '.join(part.text for part in transcript_parts)
         
         return full_transcript
-    
-    except requests.RequestException as e:
-        logging.error(f"Network error occurred while retrieving transcript for {video_id}: {str(e)}")
-        return f"ERROR: Network error - {str(e)}"
-    except json.JSONDecodeError as e:
-        logging.error(f"JSON parsing error occurred for {video_id}: {str(e)}")
-        return f"ERROR: JSON parsing error - {str(e)}"
-    except Exception as e:
-        logging.error(f"Failed to retrieve transcript for {video_id}: {str(e)}")
-        return f"ERROR: {str(e)}"
+
 
 def scrape_youtube(youtube_handles, hours=24):
     """Main function to run the video retrieval and transcript collection."""
@@ -142,7 +142,8 @@ def scrape_youtube(youtube_handles, hours=24):
     # Apply transcript retrieval with more information
     def get_transcript_with_info(row):
         logging.info(f"Attempting to retrieve transcript for video {row['videoID']} from {row['handle']}")
-        transcript = get_video_transcript(row['videoID'])
+        proxy = 'http://51.159.159.73:80'
+        transcript = get_video_transcript(row['videoID'], proxy)
         if transcript.startswith("ERROR:"):
             logging.warning(f"Failed to retrieve transcript for {row['videoID']}: {transcript}")
         else:
