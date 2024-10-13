@@ -26,8 +26,8 @@ jobs:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           GMAIL_USER: ${{ secrets.GMAIL_USER }}
           GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
-          HTTP_PROXY: http://20.204.214.23:3129
-          HTTPS_PROXY: http://20.204.214.23:3129
+          HTTP_PROXY: http://51.159.159.73:80
+          HTTPS_PROXY: http://51.159.159.73:80
         run: |
           python main.py 2>&1 | tee output.log
 
