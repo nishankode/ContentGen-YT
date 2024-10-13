@@ -5,6 +5,11 @@ from datetime import datetime, timedelta, timezone
 import scrapetube
 from youtube_transcript_api import YouTubeTranscriptApi
 import logging
+import requests
+from bs4 import BeautifulSoup
+import json
+import re
+import logging
 
 # Set up logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -71,13 +76,59 @@ def get_recent_videos_for_handles(handles, hours=24):
         return pd.DataFrame()  # Return empty DataFrame if no videos found
 
 def get_video_transcript(video_id):
-    """Retrieve the transcript for a specific video ID."""
+    """Retrieve the transcript for a specific video ID using web scraping."""
+    url = f"https://www.youtube.com/watch?v={video_id}"
+    
     try:
-        video_transcript_json = YouTubeTranscriptApi.get_transcript(video_id)
-        return ' '.join([i['text'] for i in video_transcript_json])
+        # Send a GET request to the YouTube video page
+        response = requests.get(url)
+        response.raise_for_status()  # Raise an exception for bad status codes
+        
+        # Parse the HTML content
+        soup = BeautifulSoup(response.text, 'html.parser')
+        
+        # Find the script tag containing the transcript data
+        scripts = soup.find_all('script')
+        transcript_script = next((s for s in scripts if 'captionTracks' in s.text), None)
+        
+        if not transcript_script:
+            return "ERROR: No transcript found for this video"
+        
+        # Extract the JSON data from the script
+        json_data = re.search(r'ytInitialPlayerResponse\s*=\s*({.+?});', transcript_script.string).group(1)
+        data = json.loads(json_data)
+        
+        # Extract the transcript data
+        captions = data['captions']['playerCaptionsTracklistRenderer']['captionTracks']
+        
+        if not captions:
+            return "ERROR: No captions available for this video"
+        
+        # Use the first available caption track (usually the original language)
+        caption_url = captions[0]['baseUrl']
+        
+        # Download the actual transcript data
+        transcript_response = requests.get(caption_url)
+        transcript_response.raise_for_status()
+        
+        # Parse the transcript data
+        transcript_soup = BeautifulSoup(transcript_response.text, 'html.parser')
+        transcript_parts = transcript_soup.find_all('text')
+        
+        # Combine all parts of the transcript
+        full_transcript = ' '.join(part.text for part in transcript_parts)
+        
+        return full_transcript
+    
+    except requests.RequestException as e:
+        logging.error(f"Network error occurred while retrieving transcript for {video_id}: {str(e)}")
+        return f"ERROR: Network error - {str(e)}"
+    except json.JSONDecodeError as e:
+        logging.error(f"JSON parsing error occurred for {video_id}: {str(e)}")
+        return f"ERROR: JSON parsing error - {str(e)}"
     except Exception as e:
         logging.error(f"Failed to retrieve transcript for {video_id}: {str(e)}")
-        return f"ERROR: {str(e)}"  # Return error message instead of None
+        return f"ERROR: {str(e)}"
 
 def scrape_youtube(youtube_handles, hours=24):
     """Main function to run the video retrieval and transcript collection."""
