@@ -130,6 +130,15 @@ def get_video_transcript(video_id, proxy=None):
         full_transcript = ' '.join(part.text for part in transcript_parts)
         
         return full_transcript
+    except requests.RequestException as e:
+        logging.error(f"Network error occurred while retrieving transcript for {video_id}: {str(e)}")
+        return f"ERROR: Network error - {str(e)}"
+    except json.JSONDecodeError as e:
+        logging.error(f"JSON parsing error occurred for {video_id}: {str(e)}")
+        return f"ERROR: JSON parsing error - {str(e)}"
+    except Exception as e:
+        logging.error(f"Failed to retrieve transcript for {video_id}: {str(e)}")
+        return f"ERROR: {str(e)}"
 
 
 def scrape_youtube(youtube_handles, hours=24):
