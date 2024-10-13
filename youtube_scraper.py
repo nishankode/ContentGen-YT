@@ -5,6 +5,9 @@ from datetime import datetime, timedelta, timezone
 import scrapetube
 from youtube_transcript_api import YouTubeTranscriptApi
 import logging
+from youtube_scraper_api.working.data import fetch_video_info
+from youtube_scraper_api.working.transcript import fetch_transcript
+import json
 
 # Set up logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -70,37 +73,25 @@ def get_recent_videos_for_handles(handles, hours=24):
     else:
         return pd.DataFrame()  # Return empty DataFrame if no videos found
 
-import logging
-from youtube_transcript_api import YouTubeTranscriptApi
-import requests
-
-def get_video_transcript(video_id):
-    """Retrieve the transcript for a specific video ID using a proxy."""
-    # Proxy configuration
-    proxy_url = "socks5h://198.23.239.134:6540"
-    proxy_auth = requests.auth.HTTPProxyAuth("guivyfga", "5tdsarxabmko")
+# def get_video_transcript(video_id):
+#     """Retrieve the transcript for a specific video ID."""
+#     try:
+#         video_transcript_json = YouTubeTranscriptApi.get_transcript(video_id)
+#         return ' '.join([i['text'] for i in video_transcript_json])
+#     except Exception as e:
+#         logging.error(f"Failed to retrieve transcript for {video_id}: {e}")
+#         return None  # Return None if transcript retrieval fails
     
-    proxies = {
-        'http': proxy_url,
-        'https': proxy_url
-    }
-
-    try:
-        # Configure YouTubeTranscriptApi to use the proxy
-        YouTubeTranscriptApi.proxies = proxies
-
-        # Fetch the transcript
-        transcript_list = YouTubeTranscriptApi.list_transcripts(video_id)
-        transcript = transcript_list.find_transcript(['en'])  # Prioritize English transcript
-        
-        # Join the transcript text
-        full_transcript = ' '.join([entry['text'] for entry in transcript.fetch()])
-        
-        return full_transcript
-
-    except Exception as e:
-        logging.error(f"Failed to retrieve transcript for {video_id}: {e}")
-        return None  # Return None if transcript retrieval fails
+def load_api_key_from_json(file_path):
+    with open(file_path, 'r') as file:
+        data = json.load(file)
+        return data['youtube_api_key']
+    
+def get_video_transcript(video_id):
+    api_key = load_api_key_from_json('youtube_scraper_api/testing/config.json')
+    details = fetch_video_info(video_id, api_key)
+    transcript = fetch_transcript(video_id)
+    return transcript
 
 
 def scrape_youtube(youtube_handles, hours=24):
