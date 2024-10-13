@@ -73,7 +73,7 @@ def get_recent_videos_for_handles(handles, hours=24):
 def get_video_transcript(video_id):
     """Retrieve the transcript for a specific video ID."""
     try:
-        video_transcript_json = YouTubeTranscriptApi.get_transcript(video_id, {'https': 'http://20.204.214.23:3129'})
+        video_transcript_json = YouTubeTranscriptApi.get_transcript(video_id, {'https': 'http://151.236.14.178:18080'})
         return ' '.join([i['text'] for i in video_transcript_json])
     except Exception as e:
         logging.error(f"Failed to retrieve transcript for {video_id}: {str(e)}")
