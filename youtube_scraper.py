@@ -78,6 +78,8 @@ def get_recent_videos_for_handles(handles, hours=24):
 def get_video_transcript(video_id):
     """Retrieve the transcript for a specific video ID using web scraping."""
     url = f"https://www.youtube.com/watch?v={video_id}"
+
+    logging.info(f"Started collecting transcripts for {url}")
     
     try:
         # Send a GET request to the YouTube video page
