@@ -2,7 +2,7 @@ name: Daily Script Execution
 
 on:
   schedule:
-    - cron: '30 17 * * *'  # Runs at 17:30 UTC every day
+    - cron: '30 17 * * *'  # Runs at 16:44 UTC every day
   workflow_dispatch:  # Enables manual triggering
 
 jobs:
@@ -15,19 +15,17 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.10'
+          python-version: '3.12'
 
       - name: Install dependencies
         run: |
           pip install -r requirements.txt
 
-      - name: Run Python Script with Proxy
+      - name: Run Python Script
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           GMAIL_USER: ${{ secrets.GMAIL_USER }}
           GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
-          HTTP_PROXY: http://51.159.159.73:80
-          HTTPS_PROXY: http://51.159.159.73:80
         run: |
           python main.py 2>&1 | tee output.log
 
