@@ -31,7 +31,7 @@ jobs:
           echo "tcp_read_time_out 15000" | sudo tee -a /etc/proxychains4.conf
           echo "tcp_connect_time_out 8000" | sudo tee -a /etc/proxychains4.conf
           echo "[ProxyList]" | sudo tee -a /etc/proxychains4.conf
-          echo "socks5 198.23.239.134 6540" | sudo tee -a /etc/proxychains4.conf
+          echo "socks5 198.23.239.134 6540 guivyfga 5tdsarxabmko" | sudo tee -a /etc/proxychains4.conf
 
       - name: Run Python Script through proxy
         env:
